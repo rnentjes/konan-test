@@ -7,7 +7,7 @@ buildscript {
     }
 
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-native-gradle-plugin:0.3.3"
+        classpath "org.jetbrains.kotlin:kotlin-native-gradle-plugin:0.3.4"
     }
 }
 
@@ -26,21 +26,21 @@ konanInterop {
 */
 
 konanArtifacts {
-    test {
-        inputFiles project.fileTree('src')
+    program('Test') {
+        srcDir 'src'
+        srcFiles project.fileTree('src')
 
-        // enableDebug()
-        // enableOptimization()
+        target('linux') { }
     }
 
+/*
     sqlitelib {
         produce 'library'
 
         inputFiles project.fileTree('src') {
             exclude 'Test.kt'
         }
-
-//        useInterop "sqlite3"
     }
+*/
 
 }

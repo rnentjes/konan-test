@@ -5,29 +5,32 @@ import kotlin.*
 
 val prefixBuffer = kotlin.text.toUtf8Array("Welcome!\n", 0, 9)
 
+data class ConnectionInfo(val fd: Int)
+
+
 fun handleConnection(commFd: Int): Int {
     val buffer = ByteArray(1024)
 
     try {
-        println("handleConnection 1 - $commFd")
         buffer.usePinned { pinned ->
-            println("handleConnection 2")
+
+            send(commFd, prefixBuffer.refTo(0), prefixBuffer.size.signExtend(), 0)
+              .ensureUnixCallResult("write") { it >= 0 }
+
             while (true) {
-                println("handleConnection loop")
+                println("handleConnection read ${commFd}")
 
                 val length = recv(commFd, pinned.addressOf(0), buffer.size.signExtend(), 0).toInt()
                   .ensureUnixCallResult("read") { it >= 0 }
 
-                println("handleConnection read")
                 if (length == 0) {
                     break
                 }
 
-                send(commFd, prefixBuffer.refTo(0), prefixBuffer.size.signExtend(), 0)
-                  .ensureUnixCallResult("write") { it >= 0 }
+                println("handleConnection write ${commFd}")
+
                 send(commFd, pinned.addressOf(0), length.signExtend(), 0)
                   .ensureUnixCallResult("write") { it >= 0 }
-                println("handleConnection send")
             }
         }
     } catch (e: Error) {
@@ -69,17 +72,16 @@ fun main(args: Array<String>) {
                 val commFd = accept(listenFd, null, null)
                   .ensureUnixCallResult("accept") { it >= 0 }
 
-                send(commFd, prefixBuffer.refTo(0), prefixBuffer.size.signExtend(), 0)
-                  .ensureUnixCallResult("write") { it >= 0 }
+                println("fd -> $commFd")
 
                 val worker = startWorker()
 
                 val future = worker.schedule(TransferMode.CHECKED, {
-                    commFd
-                }, { fd ->
-                    println("call handleConnection -> $fd")
+                    ConnectionInfo(commFd)
+                }, { ci ->
+                    println("call handleConnection -> ${ci.fd}")
 
-                    handleConnection(fd)
+                    handleConnection(ci.fd)
                 })
 
                 //future.consume {

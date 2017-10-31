@@ -15,11 +15,8 @@ fun handleConnection(commFd: Int): Int {
             while (true) {
                 println("handleConnection loop")
 
-                val length = pread(commFd, pinned.addressOf(0), buffer.size.signExtend(), 0).toInt()
+                val length = recv(commFd, pinned.addressOf(0), buffer.size.signExtend(), 0).toInt()
                   .ensureUnixCallResult("read") { it >= 0 }
-
-//                val length = recv(commFd, pinned.addressOf(0), buffer.size.signExtend(), 0).toInt()
-//                  .ensureUnixCallResult("read") { it >= 0 }
 
                 println("handleConnection read")
                 if (length == 0) {

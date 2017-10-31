@@ -1,0 +1,46 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url  "https://dl.bintray.com/jetbrains/kotlin-native-dependencies"
+        }
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-native-gradle-plugin:0.3.3"
+    }
+}
+
+apply plugin: 'konan'
+
+/*
+konanInterop {
+    sqlite3 {
+        //packageName 'org.sqlite3'
+
+        defFile project.file("def/sqlite3.def")
+
+        target 'linux'
+    }
+}
+*/
+
+konanArtifacts {
+    test {
+        inputFiles project.fileTree('src')
+
+        // enableDebug()
+        // enableOptimization()
+    }
+
+    sqlitelib {
+        produce 'library'
+
+        inputFiles project.fileTree('src') {
+            exclude 'Test.kt'
+        }
+
+//        useInterop "sqlite3"
+    }
+
+}
